@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Compilation de Tetris" default="dist" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+    <property name="src.dir" value="src"/>
+    <property name="obj.dir" value="bin"/>
+    <property name="libs.dir" value="lib"/>
+    <property name="test.dir" value="test"/>
+    <property name="doc.dir" value="doc"/>
+    <property name="testreport.dir" value="test/test-report"/>
+    <property name="main-class" value="fr.ubo.tetris.Tetris"/>
+    <property name="compile.classpath" value="lib/commons-lang3-3.5.jar"/>
+    <property name="version" value="1.0"/>
+
+    <target name="clean">
+        <echo message="Suppression des fichiers issus de la compilation"/>
+        <delete dir="${obj.dir}"></delete>
+        <delete dir="${libs.dir}"></delete>
+        <mkdir dir="${libs.dir}"/>
+    </target>
+
+    <target name="compile" depends="clean, retrieve">
+        <mkdir dir="${obj.dir}"></mkdir>
+        <javac srcdir="src" destdir="bin">
+            <classpath path="${compile.classpath}"></classpath>
+        </javac>
+    </target>
+
+    <target name="dist" depends="compile">
+        <jar destfile="Tetris.jar" basedir="${obj.dir}">
+            <manifest>
+                <attribute name="Built-By" value="Zainaba"/>
+                <attribute name="Implementation-Version" value="${version}"/>
+                <attribute name="Main-Class" value="${main-class}"/>
+                <attribute name="Class-Path" value="${compile.classpath}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="retrieve">
+        <ivy:settings/>
+        <ivy:resolve/>
+        <ivy:retrieve sync="true" type="jar"/>
+    </target>
+
+    <target name="compile-test">
+        <javac srcdir="${test.dir}" destdir="${obj.dir}">
+            <classpath path="${libs.dir}/junit-4.13.2.jar:${libs.dir}/hamcrest-core-1.3.jar"></classpath>
+        </javac>
+    </target>
+
+    <target name="test" depends="compile-test">
+        <mkdir dir="${obj.dir}/test-results"/>
+        <junit>
+            <formatter type="xml"/>
+            <formatter type="plain"/>
+
+            <classpath location="${libs.dir}/junit-4.13.2.jar"/>
+            <classpath location="${libs.dir}/junit-4.13.2.jar"/>
+            <classpath location="${obj.dir}"/>
+
+            <test name="fr.isen.tetris.TestShape" todir="${obj.dir}/test-results"/>
+        </junit>
+    </target>
+
+    <target name="test-reports">
+
+        <delete dir="${testreport.dir}"></delete>
+        <mkdir dir="${testreport.dir}"></mkdir>
+
+        <junitreport todir="${testreport.dir}">
+            <fileset dir="${obj.dir}/test-results">
+                <include name="TEST*.xml"/>
+            </fileset>
+            <report format="frames" todir="${testreport.dir}"></report>
+        </junitreport>
+    </target>
+
+    <target name="javadoc">
+        <delete dir="${doc.dir}"/>
+        <mkdir dir="${doc.dir}"/>
+
+        <javadoc sourcepath="${src.dir}" destdir="${doc.dir}"/>
+
+    </target>
+
+    <target name="all" depends="test-reports, dist, javadoc"/>
+
+</project>
